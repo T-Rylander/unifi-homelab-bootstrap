@@ -1,0 +1,5 @@
+# Example device IP list for batch adoption
+# Lines beginning with # are ignored.
+192.168.1.21
+192.168.1.22
+192.168.1.23
