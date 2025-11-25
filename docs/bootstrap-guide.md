@@ -40,20 +40,53 @@ ping -c 3 8.8.8.8
 ### 1.3 DNS (Phase 1: Skip A Record)
 No Samba AD yet—use IP directly (`10.0.1.10`) for controller access. Phase 2 adds `unifi.rylan-home.local` DNS entry.
 
-### 1.4 Firewall Rules (UFW - Optional for Phase 1)
-Open required UniFi ports (if UFW enabled):
+### 1.4 Firewall Rules (UFW - Recommended for Phase 1)
+
+**Security posture:** Enable UFW to restrict controller access to bootstrap VLAN only. This prevents unauthorized access during adoption phase.
+
 ```bash
-sudo ufw allow 8080/tcp
-sudo ufw allow 8443/tcp
-sudo ufw allow 8880/tcp
-sudo ufw allow 8843/tcp
-sudo ufw allow 3478/udp
-sudo ufw allow 10001/udp
-sudo ufw allow 22/tcp  # SSH
-sudo ufw enable
-sudo ufw status
+# Default deny incoming (critical for production)
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+
+# SSH access (restrict to bootstrap VLAN for safety)
+sudo ufw allow from 10.0.1.0/24 to any port 22 comment 'SSH (bootstrap VLAN)'
+
+# UniFi Controller ports (LAN access only)
+sudo ufw allow from 10.0.1.0/24 to any port 8080 comment 'UniFi inform (devices)'
+sudo ufw allow from 10.0.1.0/24 to any port 8443 comment 'Controller UI'
+sudo ufw allow from 10.0.1.0/24 to any port 8880 comment 'HTTP redirect'
+sudo ufw allow from 10.0.1.0/24 to any port 8843 comment 'Guest portal HTTPS'
+
+# STUN/Discovery (UDP - required for device adoption)
+sudo ufw allow 3478/udp comment 'STUN'
+sudo ufw allow 10001/udp comment 'Device discovery'
+
+# Enable firewall
+sudo ufw --force enable
+sudo ufw status verbose
 ```
-Alternatively, leave UFW disabled for Phase 1 (enable in Phase 2 with VLAN rules).
+
+**Expected output:**
+```
+Status: active
+Logging: on (low)
+Default: deny (incoming), allow (outgoing), disabled (routed)
+
+To                         Action      From
+--                         ------      ----
+22                         ALLOW       10.0.1.0/24                # SSH (bootstrap VLAN)
+8080                       ALLOW       10.0.1.0/24                # UniFi inform (devices)
+8443                       ALLOW       10.0.1.0/24                # Controller UI
+8880                       ALLOW       10.0.1.0/24                # HTTP redirect
+8843                       ALLOW       10.0.1.0/24                # Guest portal HTTPS
+3478/udp                   ALLOW       Anywhere                   # STUN
+10001/udp                  ALLOW       Anywhere                   # Device discovery
+```
+
+**Phase 2 migration:** When moving controller to Servers VLAN 10, update firewall rules to allow management VLAN 20 (devices) and user VLAN 30 (admin access). See `docs/security.md § Firewall Configuration` for production ruleset.
+
+**Alternative (not recommended):** Leave UFW disabled for Phase 1 if troubleshooting network connectivity issues, but **enable before production use**.
 
 ## 2. Controller Installation (Phase 1)
 ### 2.1 Clone Repository

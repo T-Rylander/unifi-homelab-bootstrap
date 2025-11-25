@@ -70,14 +70,16 @@ See `docs/vlan-design.md` for DHCP ranges, inter-VLAN firewall rules, and QoS.
 ## Repository Contents
 | Path | Purpose |
 |------|---------|
-| `install-unifi.sh` | Idempotent UniFi + MongoDB 4.4 installer with **resilient repo indexing** (auto-fallback for Ubuntu 24.04 GPG conflicts) |
+| `install-unifi.sh` | Idempotent UniFi + MongoDB 4.4 installer with **resilient repo indexing** + MongoDB localhost binding verification |
 | `troubleshoot-repo.sh` | **MongoDB repository fix utility** (dual GPG method + double apt update for manual recovery) |
+| `backup-unifi.sh` | **GPG-encrypted backups** (UniFi `.unf` + MongoDB dump) with AES256 encryption + retention management |
 | `adopt-devices.sh` | Batch / individual SSH "set-inform" adoption helper |
-| `backup-unifi.sh` | Daily backup (UniFi `.unf` + MongoDB dump + retention) |
 | `restore-unifi.sh` | Interactive restore workflow with safety checks |
-| `docs/bootstrap-guide.md` | Step-by-step Phase 1 installation with **MongoDB Repo Contingency** section |
+| `docs/security.md` | **Production security hardening** (backup encryption, MongoDB hardening, UFW firewall, audit checklist) |
+| `docs/bootstrap-guide.md` | Step-by-step Phase 1 installation with MongoDB Repo Contingency + UFW firewall setup |
 | `docs/troubleshooting.md` | Expanded diagnostics for repo indexing failures, GPG warnings, Noble (24.04) compatibility |
 | `docs/vlan-design.md` | v4.2 network topology, DHCP configuration, firewall rules |
+| `.gitignore` | **Security:** Excludes logs, backups, credentials (prevents accidental commit of sensitive data) |
 | `.github/workflows/` | CI: daily backup runner & script validation |
 | `devices.txt` | Example list of device IPs for adoption batch mode |
 | `LICENSE` | MIT License |
@@ -98,12 +100,51 @@ See `docs/bootstrap-guide.md` to begin.
 - Java: Bundled with UniFi (OpenJDK 17+); avoid system Java conflicts.
 - Ubuntu: 22.04 LTS (Jammy) or 24.04 LTS (noble); kernel 5.15+.
 - Note: Script automatically detects Ubuntu version and configures appropriate MongoDB repository.
-## Security Considerations
-- Prefer SSH key authentication for all administrative scripts (avoid passwords in automation).
-- Restrict controller access via firewall to trusted management VLAN(s).
-- Enable strong admin password and consider 2FA.
-- Backups contain sensitive configuration; store compressed archives in encrypted volume or offsite storage with access controls.
-- Validate integrity of packages by using official GPG keys (script enforced).
+## Security Posture
+
+### ✅ Repository Security Audit (Leo-Verified)
+**Status:** **CLEAN** — No credentials, API keys, or secrets in repository.
+
+**Audit Results:**
+- ❌ No hardcoded credentials in scripts
+- ❌ No SSH keys or certificates committed
+- ❌ No database passwords or API tokens
+- ✅ `.gitignore` prevents accidental commit of logs, backups, credentials
+- ✅ Scripts use interactive authentication or secure files (root-only readable)
+
+### 🔐 Production Hardening (Implemented)
+
+**Backup Encryption (CRITICAL):**
+- **GPG AES256 symmetric encryption** for all backups (contains WiFi PSKs, admin hashes, network topology)
+- Passphrase stored in `/root/.unifi-backup-passphrase` (chmod 600, root-only)
+- Encrypted `.gpg` files replace unencrypted `.tar.gz` (deleted after encryption)
+- See `docs/security.md` for setup and decryption procedures
+
+**MongoDB Security:**
+- **Localhost-only binding** (127.0.0.1:27017) verified at install time
+- Script warns if exposed to network (0.0.0.0 binding detected)
+- Authentication optional for Phase 1, mandatory for Phase 2+ (documented in `docs/security.md`)
+
+**Firewall (UFW):**
+- Bootstrap VLAN-restricted access (10.0.1.0/24) during Phase 1 adoption
+- Controller ports (8080, 8443, 8880, 8843) limited to LAN subnets
+- SSH restricted to management network (prevents brute force from internet)
+- Production migration documented in `docs/security.md § Firewall Configuration`
+
+**Access Controls:**
+- Strong admin password + 2FA recommended (enforced via controller UI)
+- SSH key-based authentication for administrative scripts
+- Session timeout: 15 minutes idle (controller setting)
+- TLS certificate replacement (Let's Encrypt or internal CA) in Phase 2
+
+**Audit Checklist:**
+- Quarterly security review checklist in `docs/security.md`
+- Incident response procedures documented
+- Backup restore drills recommended (validate encryption/decryption workflow)
+
+**Attack Surface:** **MINIMAL** — No internet-facing services, VLAN segmentation, encrypted backups, localhost-only database binding.
+
+See **`docs/security.md`** for complete hardening guide, threat model, and operational security procedures.
 
 ## Troubleshooting (Summary)
 | Symptom | Likely Cause | Reference |

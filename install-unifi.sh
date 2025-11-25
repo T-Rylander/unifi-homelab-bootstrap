@@ -101,6 +101,18 @@ if ! dpkg -l | grep -q '^ii\s\+mongodb-org\b'; then
   apt-get install -y mongodb-org || fatal "MongoDB installation failed. Check /var/log/apt/term.log for details."
   systemctl enable mongod
   systemctl start mongod || warn "MongoDB service failed to start (may need manual intervention)."
+  
+  # Security: Verify MongoDB bound to localhost only (not exposed to network)
+  sleep 3  # Allow service to bind ports
+  if ss -tulpn | grep -q ":27017.*0\.0\.0\.0"; then
+    warn "SECURITY: MongoDB is listening on all interfaces (0.0.0.0:27017). This is a security risk."
+    warn "Recommended: Edit /etc/mongod.conf and set 'bindIp: 127.0.0.1', then restart mongod."
+    warn "See docs/security.md for MongoDB hardening guidance."
+  elif ss -tulpn | grep -q ":27017.*127\.0\.0\.1"; then
+    info "Security check passed: MongoDB bound to localhost only (127.0.0.1:27017)."
+  else
+    warn "Could not verify MongoDB binding. Check manually: sudo ss -tulpn | grep 27017"
+  fi
 else
   info "MongoDB already installed. Skipping."
 fi

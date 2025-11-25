@@ -1,0 +1,42 @@
+# Security: Logs and backups contain sensitive data
+# Install logs (may expose system architecture, package versions)
+*.log
+install-unifi.log
+
+# Backups contain credentials (WiFi PSKs, RADIUS secrets, admin hashes)
+/backup/
+*.unf
+*.tar.gz
+*.tar.gz.gpg
+*.bson
+
+# Temporary files
+/tmp/
+*.tmp
+
+# MongoDB dumps (contain controller database)
+dump/
+
+# SSH keys (preventative - should never be committed)
+*.pem
+*.key
+id_rsa*
+authorized_keys
+
+# Environment files (if ever used for secrets)
+.env
+*.env
+
+# macOS metadata
+.DS_Store
+
+# Windows metadata
+Thumbs.db
+desktop.ini
+
+# Editor artifacts
+*.swp
+*.swo
+*~
+.vscode/settings.json
+.idea/
