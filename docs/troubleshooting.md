@@ -1,4 +1,4 @@
-﻿# Troubleshooting
+# Troubleshooting
 
 ## Common Issues
 | Issue | Symptom | Likely Cause | Resolution |
@@ -7,6 +7,7 @@
 | MongoDB version mismatch | Service fails to start | Upgraded system repo pulled newer Mongo | Re-run `install-unifi.sh` to re-pin 4.4 |
 | Port 8080 in use | Install aborts | Residual process (old service) | `ss -tulpn | grep :8080`; stop conflicting service |
 | Missing curl/gnupg | Install script fails at GPG key download | Minimal Ubuntu install lacks required tools | Script auto-installs dependencies (v2.0+) |
+| MongoDB repo missing | UniFi install fails: mongodb-org-server not found | MongoDB repository not added | Script v2.1+ auto-adds MongoDB 4.4 repo |
 | SSL warnings | Browser shows insecure | Self-signed default cert | Replace with Let's Encrypt or internal CA cert |
 | Restore failure | UI missing settings | Partial backup extraction | Re-run restore; check archive integrity (sha256) |
 

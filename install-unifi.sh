@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# UniFi Controller Installer for Ubuntu 24.04 (noble) - Phase 1 Clean Server
-# PURPOSE: Idempotent installation with port checks, sysctl hardening, bundled MongoDB (8.1+ includes Mongo).
-# WHY: UniFi 8.1+ bundles MongoDB 4.4\u2014no manual repo needed. Sysctl enables <1024 port binding (Ubiquiti requirement).
+# UniFi Controller Installer for Ubuntu 22.04/24.04 - Phase 1 Clean Server
+# PURPOSE: Idempotent installation with MongoDB 4.4, port checks, and sysctl hardening.
+# WHY: UniFi Network Application requires MongoDB 4.4 as external dependency on Debian/Ubuntu systems.
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -10,6 +10,7 @@ exec > >(tee -a "$LOG_FILE") 2>&1
 
 REQUIRED_PORTS=(8080 8443 8880 8843 3478 10001)
 UBNT_REPO_FILE="/etc/apt/sources.list.d/100-ubiquiti.list"
+MONGO_REPO_FILE="/etc/apt/sources.list.d/mongodb-org-4.4.list"
 SYSCTL_CONF="/etc/sysctl.d/99-unifi.conf"
 
 function info(){ echo -e "[INFO] $*"; }
@@ -23,6 +24,12 @@ fi
 
 info "Starting UniFi installation workflow on $(hostname) ($(lsb_release -ds 2>/dev/null || echo 'Unknown Distro'))."
 
+# Detect Ubuntu version for MongoDB repo
+UBUNTU_CODENAME=$(lsb_release -cs 2>/dev/null || echo "jammy")
+if [[ "$UBUNTU_CODENAME" == "noble" ]]; then
+  info "Ubuntu 24.04 detected; using Jammy (22.04) MongoDB repository for compatibility."
+  UBUNTU_CODENAME="jammy"
+fi
 
 # Preflight: Check for required tools (curl, gnupg)
 info "Checking for required dependencies..."
@@ -46,10 +53,19 @@ for p in "${REQUIRED_PORTS[@]}"; do
 done
 info "All required ports free."
 
+# Add MongoDB 4.4 repository if missing
+if [[ ! -f "$MONGO_REPO_FILE" ]]; then
+  info "Adding MongoDB 4.4 repository (codename: ${UBUNTU_CODENAME})..."
+  curl -fsSL https://www.mongodb.org/static/pgp/server-4.4.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-server-4.4.gpg || fatal "Failed to fetch MongoDB GPG key."
+  echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-4.4.gpg ] https://repo.mongodb.org/apt/ubuntu ${UBUNTU_CODENAME}/mongodb-org/4.4 multiverse" > "$MONGO_REPO_FILE"
+else
+  info "MongoDB repository already present. Skipping."
+fi
+
 # Add Ubiquiti repository (official) if missing
 if [[ ! -f "$UBNT_REPO_FILE" ]]; then
   info "Adding Ubiquiti APT repository..."
-  curl -fsSL https://dl.ui.com/unifi/unifi-repo.gpg | sudo tee /usr/share/keyrings/ubiquiti-archive-keyring.gpg >/dev/null || fatal "Failed to fetch UniFi GPG key."
+  curl -fsSL https://dl.ui.com/unifi/unifi-repo.gpg | gpg --dearmor -o /usr/share/keyrings/ubiquiti-archive-keyring.gpg || fatal "Failed to fetch UniFi GPG key."
   echo "deb [signed-by=/usr/share/keyrings/ubiquiti-archive-keyring.gpg] https://www.ui.com/downloads/unifi/debian stable ubiquiti" > "$UBNT_REPO_FILE"
 else
   info "Ubiquiti repository already present. Skipping."
@@ -58,29 +74,28 @@ fi
 info "Updating package indices..."
 apt-get update -y || fatal "apt-get update failed."
 
-# Install UniFi (bundled MongoDB 4.4 included in 8.1+ packages)
+# Install MongoDB 4.4 first (UniFi dependency)
+if ! dpkg -l | grep -q '^ii\s\+mongodb-org\b'; then
+  info "Installing MongoDB 4.4..."
+  apt-get install -y mongodb-org || fatal "MongoDB installation failed."
+  systemctl enable mongod
+  systemctl start mongod || warn "MongoDB service failed to start (may need manual intervention)."
+else
+  info "MongoDB already installed. Skipping."
+fi
+
+# Install UniFi Network Application
 if ! dpkg -l | grep -q '^ii\s\+unifi\b'; then
-  info "Installing UniFi Network Application (includes bundled MongoDB + Java)..."
+  info "Installing UniFi Network Application..."
   apt-get install -y unifi || fatal "UniFi install failed."
 else
   info "UniFi already installed. Performing safe upgrade (keeping major versions)."
   apt-get install -y --only-upgrade unifi || warn "Upgrade may have been skipped (already latest)."
 fi
 
-# Ensure UniFi uses bundled Java (avoid system-wide Java interference)
-UNIFI_JAVA_DIR="/usr/lib/unifi"
-if [[ -d "$UNIFI_JAVA_DIR" ]]; then
-  info "Verifying bundled Java presence..."
-  if ! find "$UNIFI_JAVA_DIR" -maxdepth 2 -type f -name 'java' | grep -q java; then
-    warn "Bundled Java executable not found; fallback may use system Java."
-  fi
-else
-  warn "UniFi directory not found; install may have failed earlier."
-fi
-
 # Sysctl hardening: allow <1024 port binding (UniFi requirement for ports 80/443 redirect)
 if [[ ! -f "$SYSCTL_CONF" ]]; then
-  info "Applying sysctl adjustments (unprivileged_port_start=80\u2014Ubiquiti requirement)."
+  info "Applying sysctl adjustments (unprivileged_port_start=80Ubiquiti requirement)."
   echo 'net.ipv4.ip_unprivileged_port_start=80' > "$SYSCTL_CONF"
   sysctl --system >/dev/null || warn "sysctl reload returned non-zero; continuing."
 else
