@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # UniFi Device Adoption Helper (Phase 1: Bootstrap VLAN 1)
 # PURPOSE: SSH set-inform for Layer 3 adoption failures (factory-reset devices on 10.0.1.0/24).
-# WHY: USG-3P, US-8-60W may fail auto-discovery; SSH fallback forces inform to controller.
+# WHY: USG-3P, US-8-60W, USW-Flex-Mini may fail auto-discovery; SSH fallback forces inform to controller.
+# SUPPORTED DEVICES: USG-3P, US-8-60W, USW-Flex-Mini, UAP-AC-Lite (Total: 4)
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -15,15 +16,16 @@ Usage:
 
 Options:
   -c    Controller IP (required) e.g. 10.0.1.10 (bootstrap VLAN 1)
-  -d    Single device IP to adopt (e.g. USG: 10.0.1.1, US-8: 10.0.1.2)
+  -d    Single device IP to adopt (e.g. USG: 10.0.1.1, US-8: 10.0.1.2, Flex-Mini: 10.0.1.3)
   -f    File containing list of device IPs (one per line) - ignored if -d used
   -u    SSH username (default: ubnt)
   -k    Path to SSH private key (optional, overrides password auth)
   -p    Prompt for SSH password (factory default: ubnt/ubnt)
   -h    Help
 
-Examples (Phase 1 Bootstrap):
+Examples (Phase 1 Bootstrap - 4 Devices Total):
   sudo bash adopt-devices.sh -c 10.0.1.10 -d 10.0.1.1   # USG-3P
+  sudo bash adopt-devices.sh -c 10.0.1.10 -d 10.0.1.3   # USW-Flex-Mini
   sudo bash adopt-devices.sh -c 10.0.1.10 -f devices.txt -p
 EOF
 }

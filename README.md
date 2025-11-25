@@ -11,9 +11,11 @@ Provide a reproducible, zero‑touch bootstrap process for installing, operating
 | `rylan-dc` | Dell R620 | Ubuntu 24.04 LTS Server | Fresh install; UniFi Controller (Phase 1), Samba AD (Phase 2) |
 | Gateway | USG-3P | Edge routing | Factory reset; adopts first |
 | Core Switch | US-8-60W | Upstairs PoE distribution | 8-port managed; powers APs |
-| Trunk Switch | TL-SG108 | Downstairs 5-port | Unmanaged; no adoption (trunk only) |
+| Downstairs Switch | USW-Flex-Mini | 5-port 2.5Gb managed | **Fully managed UniFi device; requires adoption** |
 | Access Points | 2× UAP-AC-Lite | Wireless coverage | Factory reset; adopt after switches |
 | Future VoIP | GRP2601P | Desk phones | Phase 3: VLAN 40, DHCP opt 66/160 |
+
+**Total UniFi Devices to Adopt: 4** (USG-3P, US-8-60W, USW-Flex-Mini, 2× APs)
 
 ## Prerequisites Checklist (Phase 1: Clean Server)
 - Fresh Ubuntu 24.04 LTS installation (server, minimal packages) on `rylan-dc`.
@@ -43,17 +45,14 @@ Provide a reproducible, zero‑touch bootstrap process for installing, operating
         |   \ 
         |    +--[UAP-AC-Lite] (10.0.20.10)
         |    +--[UAP-AC-Lite] (10.0.20.11)
+        |    +--[rylan-dc] (10.0.1.10 → 10.0.10.10 Servers)
         |
-    (1Gb Cat6 Trunk: All VLANs)
+    (Port 2: 1Gb Trunk All VLANs)
         |
-   [TL-SG108] (Unmanaged 5-port, downstairs—no adoption)
+   [USW-Flex-Mini] (Downstairs 2.5Gb Managed, VLAN 20: 10.0.20.4)
         |
-        +--[rylan-dc] (10.0.1.10 bootstrap → 10.0.10.10 Servers VLAN)
-        |              Phase 1: UniFi Controller
-        |              Phase 2: + Samba AD DC
-        +--[Future: FreePBX] (VLAN 40: 10.0.40.30)
-        +--[Future: Pi5 osTicket] (VLAN 30: 10.0.30.40)
-        +--[Workstations] (VLAN 30: User Devices)
+        +--[Port 2-5: Future FreePBX + VoIP phones] (VLAN 40)
+        +--[Phase 3: GRP2601P desk phones]
 ```
 
 ## VLAN Design (v4.2 Final)

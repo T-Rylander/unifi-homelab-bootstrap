@@ -16,9 +16,17 @@
 | 1    | .100-.250        | .10 (rylan-dc)      | 12h        | 8.8.8.8 (Phase 1)      |
 | 10   | .100-.200        | .10 (rylan-dc)      | 24h        | 10.0.10.10 (Phase 2 AD)|
 | 20   | .100-.150        | .2 (USG), .3 (US-8) | 24h        | 10.0.10.10             |
+| 20   | .100-.150        | .2 (USG), .3 (US-8), .4 (Flex-Mini) | 24h | 10.0.10.10             |
 | 30   | .100-.250        | .40 (Pi5 osTicket)  | 12h        | 10.0.10.10             |
 | 40   | .100-.200        | .30 (FreePBX)       | 24h        | 10.0.10.10             |
 | 90   | .100-.250        | None                | 8h         | 8.8.8.8 (isolated)     |
+
+## Inter-VLAN Routing Rules (Firewall Logic)
+## Switch Topology Notes
+- **US-8-60W Port 2 → USW-Flex-Mini Port 1** (1Gb trunk, Profile: All VLANs)
+- **USW-Flex-Mini is fully managed** – ports configured via UniFi Controller (adopt as 4th device)
+- **Phase 3:** Flex-Mini Ports 2–5 assigned to VLAN 40 (VoIP) for FreePBX + GRP2601P phones
+- **Port Profiles:** Create "VoIP" profile (Native VLAN 40, enable LLDP-MED) and apply to Flex-Mini ports
 
 ## Inter-VLAN Routing Rules (Firewall Logic)
 | Source VLAN | Destination VLAN | Action | Ports/Protocol | Rationale |

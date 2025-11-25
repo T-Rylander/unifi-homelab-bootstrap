@@ -98,18 +98,31 @@ Options:
 ### 3.1 Factory Reset Procedure (All Devices)
 - **USG-3P:** Hold reset button 10 seconds until white LED rapid blink (releases after ~15s total).
 - **US-8-60W:** Hold reset button 10 seconds until status LED alternates (device reboots).
+- **USW-Flex-Mini:** Hold reset button 10 seconds until LED flashes white/amber (factory reset confirmed).
 - **UAP-AC-Lite:** Hold reset button 10 seconds until LED ring flashes white/blue (factory defaults restored).
 
 ### 3.2 Power-On Sequence (Critical Order)
 1. **Controller:** Verify `https://10.0.1.10:8443` accessible (wait 60s post-reboot for services).
 2. **USG-3P (Gateway):** Power on, wait **5 minutes** for firmware download + provisioning. LED: White steady = adopted.
 3. **US-8-60W (Switch):** Power on after USG stable. Wait 2-3 minutes. LED: White = adopted.
-4. **UAP-AC-Lite (APs):** Power on after switch stable. Each takes 2-3 minutes. LED: White = adopted, blue = broadcasting.
+4. **USW-Flex-Mini (Switch):** Connect Port 1 to US-8-60W Port 2. Power on. Wait 2-3 minutes. LED: White = adopted.
+5. **UAP-AC-Lite (APs):** Power on after switches stable. Each takes 2-3 minutes. LED: White = adopted, blue = broadcasting.
+
+**Total Adoption Count: 4 devices** (USG-3P, US-8-60W, USW-Flex-Mini, 2× APs).
 
 ### 3.3 UI Adoption Workflow (Automatic Discovery)
-Devices should appear in **Devices** tab:
+Devices should appear in **Devices** tab (expected: 4 total):
 - Status progression: `Pending` → `Adopt` (click button) → `Provisioning` → `Connected`
 - If stuck in `Adopting` >10 minutes: Use SSH fallback (Section 3.4).
+
+**Post-Adoption Verification:**
+```bash
+ping 10.0.1.1   # USG-3P
+ping 10.0.1.2   # US-8-60W
+ping 10.0.1.3   # USW-Flex-Mini
+ping 10.0.1.10  # AP #1
+ping 10.0.1.11  # AP #2
+```
 
 ### 3.4 SSH Fallback (Layer 3 Adoption)
 Default credentials: `ubnt/ubnt` (change post-adoption via Settings > Site > Device Authentication).

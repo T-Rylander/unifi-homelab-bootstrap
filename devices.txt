@@ -1,8 +1,9 @@
 # Example device IP list for batch adoption (Phase 1: Bootstrap VLAN 1)
 # Lines beginning with # are ignored.
 # Adoption order: USG first (5min provision), then switches, then APs.
+# TOTAL DEVICES TO ADOPT: 4
 10.0.1.1    # USG-3P (gateway)
 10.0.1.2    # US-8-60W (upstairs PoE switch)
+10.0.1.3    # USW-Flex-Mini (downstairs 2.5Gb managed switch)
 10.0.1.10   # UAP-AC-Lite #1 (upstairs)
 10.0.1.11   # UAP-AC-Lite #2 (downstairs)
-# TL-SG108 unmanaged switch: no adoption needed
