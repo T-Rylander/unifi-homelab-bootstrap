@@ -1,0 +1,45 @@
+name: Daily UniFi Backup
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # 02:00 UTC daily
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup SSH key (if self-hosted controller)
+        if: env.CONTROLLER_HOST != ''
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          CONTROLLER_HOST: ${{ secrets.CONTROLLER_HOST }}
+
+      - name: Remote backup execution (self-hosted)
+        if: env.CONTROLLER_HOST != ''
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.CONTROLLER_USER }}@${{ secrets.CONTROLLER_HOST }} "sudo bash /root/unifi-homelab-bootstrap/backup-unifi.sh"
+
+      - name: Local simulation (no remote host configured)
+        if: env.CONTROLLER_HOST == ''
+        run: |
+          echo "No remote host configured; skipping actual backup. Configure secrets to enable."
+
+      - name: Upload artifact (placeholder if remote)
+        uses: actions/upload-artifact@v4
+        with:
+          name: unifi-backup-log
+          path: backup-unifi.log
+          if-no-files-found: warn
+
+      - name: Notification on failure
+        if: failure()
+        run: |
+          echo "Backup failed. Consider opening an issue or sending alert."
