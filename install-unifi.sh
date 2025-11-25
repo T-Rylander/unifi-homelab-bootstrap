@@ -74,10 +74,31 @@ fi
 info "Updating package indices..."
 apt-get update -y || fatal "apt-get update failed."
 
+# Verify MongoDB repository is properly indexed (resilience check)
+info "Verifying MongoDB 4.4 repository accessibility..."
+if ! apt-cache policy mongodb-org | grep -q "mongodb-org-4.4"; then
+  warn "MongoDB repo not indexed after initial apt update—attempting legacy GPG fallback..."
+  
+  # Legacy apt-key method (fallback for GPG format conflicts on 24.04)
+  curl -fsSL https://www.mongodb.org/static/pgp/server-4.4.asc | apt-key add - || warn "Legacy apt-key add failed (proceeding)."
+  
+  # Force repository refresh with --fix-missing
+  apt-get update --fix-missing -y || warn "Fix-missing update completed with warnings."
+  
+  # Second verification attempt
+  if ! apt-cache policy mongodb-org | grep -q "mongodb-org-4.4"; then
+    fatal "MongoDB repository still not accessible. Manual intervention required. See docs/bootstrap-guide.md § MongoDB Repo Contingency."
+  else
+    info "MongoDB repo now indexed after legacy fallback."
+  fi
+else
+  info "MongoDB repository verified (no fallback needed)."
+fi
+
 # Install MongoDB 4.4 first (UniFi dependency)
 if ! dpkg -l | grep -q '^ii\s\+mongodb-org\b'; then
   info "Installing MongoDB 4.4..."
-  apt-get install -y mongodb-org || fatal "MongoDB installation failed."
+  apt-get install -y mongodb-org || fatal "MongoDB installation failed. Check /var/log/apt/term.log for details."
   systemctl enable mongod
   systemctl start mongod || warn "MongoDB service failed to start (may need manual intervention)."
 else

@@ -69,6 +69,50 @@ sudo bash install-unifi.sh
 ```
 **Runtime:** ~5 minutes. Output shows controller URL (`https://10.0.1.10:8443`).
 
+**Expected Output:** Script performs resilience checks for MongoDB repository indexing. If `apt-cache policy mongodb-org` fails after initial `apt update`, the installer automatically:
+1. Attempts legacy `apt-key` GPG import (fallback for Ubuntu 24.04 keyring format conflicts).
+2. Runs `apt-get update --fix-missing` to force cache refresh.
+3. Re-verifies MongoDB 4.4 availability before proceeding.
+
+### 2.2.1 MongoDB Repository Contingency (Manual Fix)
+**Symptom:** Installer fails with "MongoDB repository still not accessible" or `apt-get install mongodb-org` returns "Unable to locate package."
+
+**Root Cause:** Ubuntu 24.04 (noble) uses modern signed-by keyrings, but MongoDB 4.4's GPG key format triggers deprecation warnings. Combined with apt cache stubbornness (especially on fresh installs), the multiverse packages may not index on first `apt update`.
+
+**Manual Fix (if installer fallback fails):**
+```bash
+# Run dedicated troubleshooter script
+sudo bash troubleshoot-repo.sh
+```
+
+**What it does:**
+- Removes existing MongoDB repo files and GPG keys (clean slate).
+- Adds MongoDB GPG key via **both** modern (signed-by keyring) and legacy (apt-key) methods.
+- Creates repository entry for Jammy (22.04) if on Noble (24.04)—MongoDB 4.4 lacks Noble packages.
+- Runs double `apt update` (standard + `--fix-missing`) to force cache indexing.
+- Verifies `apt-cache policy mongodb-org` shows candidate version from mongodb-org-4.4 repository.
+
+**Expected Output (success):**
+```
+[INFO] ✓ SUCCESS: MongoDB 4.4 repository is now accessible.
+[INFO] Available version: 4.4.29
+[INFO] You can now run: sudo apt-get install -y mongodb-org
+```
+
+**If still failing:**
+1. Check `/tmp/apt-update.log` for specific errors (i386 architecture warnings are normal; ignore).
+2. Verify outbound HTTPS works: `curl -I https://repo.mongodb.org` (should return `200 OK`).
+3. Confirm Ubuntu codename: `lsb_release -cs` (noble → uses jammy repo; jammy → native).
+4. See **§ Troubleshooting** for "MongoDB repo indexing fails" detailed diagnostics.
+
+**After manual fix succeeds:**
+```bash
+# Resume installation (MongoDB now installable)
+sudo apt-get install -y mongodb-org
+sudo systemctl enable mongod && sudo systemctl start mongod
+sudo apt-get install -y unifi
+```
+
 ### 2.3 Initial Setup Wizard
 Browse to:
 ```

@@ -70,11 +70,14 @@ See `docs/vlan-design.md` for DHCP ranges, inter-VLAN firewall rules, and QoS.
 ## Repository Contents
 | Path | Purpose |
 |------|---------|
-| `install-unifi.sh` | Idempotent UniFi + MongoDB 4.4 installer (with repo pinning & port checks) |
+| `install-unifi.sh` | Idempotent UniFi + MongoDB 4.4 installer with **resilient repo indexing** (auto-fallback for Ubuntu 24.04 GPG conflicts) |
+| `troubleshoot-repo.sh` | **MongoDB repository fix utility** (dual GPG method + double apt update for manual recovery) |
 | `adopt-devices.sh` | Batch / individual SSH "set-inform" adoption helper |
 | `backup-unifi.sh` | Daily backup (UniFi `.unf` + MongoDB dump + retention) |
 | `restore-unifi.sh` | Interactive restore workflow with safety checks |
-| `docs/` | Detailed operational / design documentation |
+| `docs/bootstrap-guide.md` | Step-by-step Phase 1 installation with **MongoDB Repo Contingency** section |
+| `docs/troubleshooting.md` | Expanded diagnostics for repo indexing failures, GPG warnings, Noble (24.04) compatibility |
+| `docs/vlan-design.md` | v4.2 network topology, DHCP configuration, firewall rules |
 | `.github/workflows/` | CI: daily backup runner & script validation |
 | `devices.txt` | Example list of device IPs for adoption batch mode |
 | `LICENSE` | MIT License |
