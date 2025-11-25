@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 # UniFi Controller Installer for Ubuntu 24.04 (noble) - Phase 1 Clean Server
 # PURPOSE: Idempotent installation with port checks, sysctl hardening, bundled MongoDB (8.1+ includes Mongo).
 # WHY: UniFi 8.1+ bundles MongoDB 4.4\u2014no manual repo needed. Sysctl enables <1024 port binding (Ubiquiti requirement).

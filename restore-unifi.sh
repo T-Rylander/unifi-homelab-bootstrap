@@ -98,4 +98,4 @@ STEPS
 info "Cleanup temporary directory $TMP_DIR"
 rm -rf "$TMP_DIR"
 
-info "Restore workflow complete. Monitor system for 10–15 minutes for background tasks."
+info "Restore workflow complete. Monitor system for 10â€“15 minutes for background tasks."
