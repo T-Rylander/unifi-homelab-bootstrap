@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 # UniFi Controller Installer for Ubuntu 24.04 (noble) - Phase 1 Clean Server
 # PURPOSE: Idempotent installation with port checks, sysctl hardening, bundled MongoDB (8.1+ includes Mongo).
 # WHY: UniFi 8.1+ bundles MongoDB 4.4\u2014no manual repo needed. Sysctl enables <1024 port binding (Ubiquiti requirement).
@@ -22,6 +22,20 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 info "Starting UniFi installation workflow on $(hostname) ($(lsb_release -ds 2>/dev/null || echo 'Unknown Distro'))."
+
+
+# Preflight: Check for required tools (curl, gnupg)
+info "Checking for required dependencies..."
+MISSING_DEPS=()
+command -v curl >/dev/null 2>&1 || MISSING_DEPS+=("curl")
+command -v gpg >/dev/null 2>&1 || MISSING_DEPS+=("gnupg")
+
+if [[ ${#MISSING_DEPS[@]} -gt 0 ]]; then
+  info "Installing missing dependencies: ${MISSING_DEPS[*]}"
+  apt-get update -qq || fatal "apt-get update failed during dependency check."
+  apt-get install -y "${MISSING_DEPS[@]}" || fatal "Failed to install dependencies: ${MISSING_DEPS[*]}"
+  info "Dependencies installed successfully."
+fi
 
 # Preflight: Check required ports are not occupied
 info "Checking port availability..."
