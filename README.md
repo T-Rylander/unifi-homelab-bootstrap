@@ -1,5 +1,15 @@
 # UniFi Homelab Bootstrap
 
+**STOP**  
+You have finished the bootstrap phase.  
+Your network is adopted but still on the default 192.168.1.0/24.
+
+**Next step → run the declarative overhaul repo**  
+See [docs/NEXT_STEPS_AFTER_BOOTSTRAP.md](docs/NEXT_STEPS_AFTER_BOOTSTRAP.md)
+
+Do **not** start creating VLANs manually.  
+The declarative repo owns the final state.
+
 > Productionâ€‘grade, native (nonâ€‘Docker) deployment of the UniFi Network Application (Controller) on Ubuntu 24.04 LTS. Clean server foundationâ€”Phase 1 (UniFi only), Phase 2 (Samba AD integration), Phase 3 (services: FreePBX, osTicket). Zeroâ€‘touch bootstrap for longâ€‘term homelab stability.
 
 ## Mission Statement
