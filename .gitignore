@@ -13,6 +13,7 @@ install-unifi.log
 # Temporary files
 /tmp/
 *.tmp
+*.bak
 
 # MongoDB dumps (contain controller database)
 dump/
