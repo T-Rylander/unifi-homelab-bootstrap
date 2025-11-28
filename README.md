@@ -10,7 +10,7 @@ See [docs/NEXT_STEPS_AFTER_BOOTSTRAP.md](docs/NEXT_STEPS_AFTER_BOOTSTRAP.md)
 Do **not** start creating VLANs manually.  
 The declarative repo owns the final state.
 
-> Productionâ€‘grade, native (nonâ€‘Docker) deployment of the UniFi Network Application (Controller) on Ubuntu 24.04 LTS. Clean server foundationâ€”Phase 1 (UniFi only), Phase 2 (Samba AD integration), Phase 3 (services: FreePBX, osTicket). Zeroâ€‘touch bootstrap for longâ€‘term homelab stability.
+> Production-grade, native (non-Docker) deployment of the UniFi Network Application (Controller) on Ubuntu 24.04 LTS. Clean server foundation Phase 1 (UniFi only), Phase 2 (Samba AD integration), Phase 3 (services: FreePBX, osTicket). Zeroâ€‘touch bootstrap for longâ€‘term homelab stability.
 
 ## Mission Statement
 Provide a reproducible, zeroâ€‘touch bootstrap process for installing, operating, backing up, and restoring a UniFi Network Application on a fresh Ubuntu 24.04 server. Phased architecture enables controlled expansion: Phase 1 establishes network foundation; Phase 2 adds Active Directory; Phase 3 layers services (VoIP, ticketing). Designed for 5+ year operational stability and ops handoff readiness.
@@ -22,10 +22,10 @@ Provide a reproducible, zeroâ€‘touch bootstrap process for installing, oper
 | Gateway | USG-3P | Edge routing | Factory reset; adopts first |
 | Core Switch | US-8-60W | Upstairs PoE distribution | 8-port managed; powers APs |
 | Downstairs Switch | USW-Flex-Mini | 5-port 2.5Gb managed | **Fully managed UniFi device; requires adoption** |
-| Access Points | 2Ã— UAP-AC-Lite | Wireless coverage | Factory reset; adopt after switches |
+| Access Points | 2 — UAP-AC-Lite | Wireless coverage | Factory reset; adopt after switches |
 | Future VoIP | GRP2601P | Desk phones | Phase 3: VLAN 40, DHCP opt 66/160 |
 
-**Total UniFi Devices to Adopt: 4** (USG-3P, US-8-60W, USW-Flex-Mini, 2Ã— APs)
+**Total UniFi Devices to Adopt: 4** (USG-3P, US-8-60W, USW-Flex-Mini, 2 — APs)
 
 ## Prerequisites Checklist (Phase 1: Clean Server)
 - Fresh Ubuntu 24.04 LTS installation (server, minimal packages) on `rylan-dc`.
@@ -33,7 +33,7 @@ Provide a reproducible, zeroâ€‘touch bootstrap process for installing, oper
 - DNS: Use public resolver (8.8.8.8) initially; migrate to AD in Phase 2.
 - Outbound internet access for apt repositories.
 - System time synchronized (systemd-timesyncd default OK).
-- Sufficient resources: â‰¥2 vCPU, â‰¥4GB RAM, â‰¥32GB storage.
+- Sufficient resources: Core i5 vCPU, 4GB RAM, 32GB storage.
 - Open ports (ensure unused): 8080, 8443, 8880, 8843, 3478/udp, 10001/udp.
 - SSH access with keyâ€‘based authentication for administrative scripts.
 - **NO Samba** installed yetâ€”Phase 2 only.
