@@ -13,7 +13,7 @@ The declarative repo owns the final state.
 > Production-grade, native (non-Docker) deployment of the UniFi Network Application (Controller) on Ubuntu 24.04 LTS. Clean server foundation Phase 1 (UniFi only), Phase 2 (Samba AD integration), Phase 3 (services: FreePBX, osTicket). Zeroâ€‘touch bootstrap for longâ€‘term homelab stability.
 
 ## Mission Statement
-Provide a reproducible, zeroâ€‘touch bootstrap process for installing, operating, backing up, and restoring a UniFi Network Application on a fresh Ubuntu 24.04 server. Phased architecture enables controlled expansion: Phase 1 establishes network foundation; Phase 2 adds Active Directory; Phase 3 layers services (VoIP, ticketing). Designed for 5+ year operational stability and ops handoff readiness.
+Provide a reproducible, zero touch bootstrap process for installing, operating, backing up, and restoring a UniFi Network Application on a fresh Ubuntu 24.04 server. Phased architecture enables controlled expansion: Phase 1 establishes network foundation; Phase 2 adds Active Directory; Phase 3 layers services (VoIP, ticketing). Designed for 5+ year operational stability and ops handoff readiness.
 
 ## Hardware / Platform
 | Component | Model | Role | Notes |
